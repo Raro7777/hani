@@ -50,3 +50,19 @@ export const STATUS_LABELS: Record<string, string> = {
     CLOSED: '확정',
     CANCELLED: '취소',
 };
+
+export const ACTIVATION_TYPE_LABELS: Record<string, string> = {
+    NEW: '신규',
+    MNP: '번호이동',
+    CHANGE: '기기변경',
+    OTHER: '기타',
+};
+
+import * as XLSX from 'xlsx';
+
+export const exportToExcel = (data: any[], fileName: string) => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales");
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+};

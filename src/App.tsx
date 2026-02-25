@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import MainLayout from './layout/MainLayout';
 import SaleForm from './components/SaleForm';
-import { formatCurrency, calculateNetIncome } from './lib/utils';
+import { formatCurrency, calculateNetIncome, exportToExcel, ACTIVATION_TYPE_LABELS } from './lib/utils';
 import { Carrier, Sale } from './types';
 import DailyClosing from './components/DailyClosing';
+import Analytics from './components/Analytics';
 import './App.css';
 
 const MOCK_CARRIERS: Carrier[] = [
@@ -71,7 +72,19 @@ function App() {
                     <div className="table-container glass">
                         <div className="table-header">
                             <h3>최근 판매 내역</h3>
-                            <button className="btn-primary" onClick={() => setIsFormOpen(true)}>신규 등록</button>
+                            <div className="table-actions">
+                                <button className="btn-secondary-outline" onClick={() => {
+                                    const exportData = sales.map(s => ({
+                                        판매일자: s.saleDate,
+                                        통신사: MOCK_CARRIERS.find(c => c.id === s.carrierId)?.name,
+                                        가입자명: s.subscriberName,
+                                        모델명: s.modelName,
+                                        실수입: calculateNetIncome(s.items)
+                                    }));
+                                    exportToExcel(exportData, `hani_sales_${new Date().toISOString().split('T')[0]}`);
+                                }}>엑셀 다운로드</button>
+                                <button className="btn-primary" onClick={() => setIsFormOpen(true)}>신규 등록</button>
+                            </div>
                         </div>
                         <div className="table-wrapper">
                             <table className="modern-table">
@@ -80,6 +93,8 @@ function App() {
                                         <th>번호</th>
                                         <th>날짜</th>
                                         <th>통신사</th>
+                                        <th>유형</th>
+                                        <th>요금제</th>
                                         <th>가입자</th>
                                         <th>모델명</th>
                                         <th>판매금액</th>
@@ -101,10 +116,12 @@ function App() {
                                                     <td><span className={`badge ${sale.carrierId.toLowerCase()}`}>
                                                         {carrier?.name || '기타'}
                                                     </span></td>
+                                                    <td>{ACTIVATION_TYPE_LABELS[sale.activationType] || sale.activationType}</td>
+                                                    <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{sale.planName || '-'}</td>
                                                     <td>{sale.subscriberName}</td>
                                                     <td>{sale.modelName || '-'}</td>
                                                     <td>{formatCurrency(saleAmount)}</td>
-                                                    <td>{formatCurrency(netIncome)}</td>
+                                                    <td className="text-primary" style={{ fontWeight: 700 }}>{formatCurrency(netIncome)}</td>
                                                     <td>
                                                         <button className="btn-icon delete" onClick={() => handleSaleDelete(sale.id)}>
                                                             <Trash2 size={16} />
@@ -132,10 +149,7 @@ function App() {
             )}
 
             {activeTab === 'reports' && (
-                <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>통계 리포트 정보</h3>
-                    <p style={{ color: '#94a3b8' }}>준비 중인 기능입니다. 다음 업데이트에서 실적 집계를 확인하실 수 있습니다.</p>
-                </div>
+                <Analytics sales={sales} />
             )}
 
             {isFormOpen && (

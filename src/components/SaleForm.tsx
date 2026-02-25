@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
-import { SettlementType, Carrier, Sale } from '../types';
-import { formatCurrency, SETTLEMENT_LABELS } from '../lib/utils';
+import { SettlementType, Carrier, Sale, ActivationType } from '../types';
+import { formatCurrency, SETTLEMENT_LABELS, calculateNetIncome, ACTIVATION_TYPE_LABELS } from '../lib/utils';
 import './SaleForm.css';
 
 interface SaleFormProps {
@@ -14,6 +14,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
     const [formData, setFormData] = useState({
         saleDate: new Date().toISOString().split('T')[0],
         carrierId: carriers[0]?.id || '',
+        activationType: 'NEW' as ActivationType,
+        planName: '',
         subscriberName: '',
         phoneNumber: '',
         modelName: '',
@@ -64,11 +66,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
         onClose();
     };
 
-    const netIncome = settlements.reduce((acc, s) => {
-        if (s.type === 'REBATE' || s.type === 'EXTRA') return acc + Number(s.amount);
-        if (s.type === 'SUBSIDY') return acc - Number(s.amount);
-        return acc;
-    }, 0);
+    const netIncome = calculateNetIncome(settlements as any);
 
     return (
         <div className="modal-overlay">
@@ -85,11 +83,25 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
                             <label>판매일자</label>
                             <input type="date" name="saleDate" value={formData.saleDate} onChange={handleInputChange} />
                         </div>
+                        <div className="input-row">
+                            <div className="input-group">
+                                <label>통신사</label>
+                                <select name="carrierId" value={formData.carrierId} onChange={handleInputChange}>
+                                    {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="input-group">
+                                <label>개통유형</label>
+                                <select name="activationType" value={formData.activationType} onChange={handleInputChange}>
+                                    {Object.entries(ACTIVATION_TYPE_LABELS).map(([value, label]) => (
+                                        <option key={value} value={value}>{label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                         <div className="input-group">
-                            <label>통신사</label>
-                            <select name="carrierId" value={formData.carrierId} onChange={handleInputChange}>
-                                {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
+                            <label>요금제</label>
+                            <input type="text" name="planName" placeholder="예: 5G 올인원 95" value={formData.planName} onChange={handleInputChange} />
                         </div>
                         <div className="input-row">
                             <div className="input-group">

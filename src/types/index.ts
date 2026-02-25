@@ -2,6 +2,7 @@ export type SellerRole = 'ADMIN' | 'MANAGER' | 'SELLER';
 export type SaleStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';
 export type SettlementType = 'SALE_AMOUNT' | 'SUBSIDY' | 'REBATE' | 'EXTRA' | 'INSTALLMENT';
 export type CashEntryType = 'OTHER_INCOME' | 'EXPENSE' | 'BANK_DEPOSIT' | 'OTHER';
+export type ActivationType = 'NEW' | 'MNP' | 'CHANGE' | 'OTHER';
 
 export interface Store {
     id: string;
@@ -31,6 +32,8 @@ export interface Sale {
     storeId: string;
     sellerId: string;
     carrierId: string;
+    activationType: ActivationType;
+    planName: string;
     subscriberName: string;
     phoneNumber: string;
     modelName?: string;
