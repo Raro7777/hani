@@ -5,6 +5,7 @@ import { formatCurrency, calculateNetIncome, exportToExcel, ACTIVATION_TYPE_LABE
 import { Carrier, Sale } from './types';
 import DailyClosing from './components/DailyClosing';
 import Analytics from './components/Analytics';
+import DateCalculator from './components/DateCalculator';
 import './App.css';
 
 const MOCK_CARRIERS: Carrier[] = [
@@ -165,6 +166,7 @@ function App() {
             <button className="fab-button" onClick={() => setIsFormOpen(true)} aria-label="신규 등록">
                 <Plus size={28} />
             </button>
+            <DateCalculator />
         </MainLayout>
     );
 }
