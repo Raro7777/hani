@@ -35,6 +35,8 @@ export interface Sale {
     activationType: ActivationType;
     planName: string;
     subscriberName: string;
+    birthDate?: string;
+    planChangeDate?: string;
     phoneNumber: string;
     modelName?: string;
     serialNumber?: string;

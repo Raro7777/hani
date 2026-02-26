@@ -78,6 +78,8 @@ function App() {
                                         판매일자: s.saleDate,
                                         통신사: MOCK_CARRIERS.find(c => c.id === s.carrierId)?.name,
                                         가입자명: s.subscriberName,
+                                        생년월일: s.birthDate,
+                                        요금제변경일: s.planChangeDate,
                                         모델명: s.modelName,
                                         실수입: calculateNetIncome(s.items)
                                     }));

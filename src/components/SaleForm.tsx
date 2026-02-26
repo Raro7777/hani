@@ -17,6 +17,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
         activationType: 'NEW' as ActivationType,
         planName: '',
         subscriberName: '',
+        birthDate: '',
+        planChangeDate: '',
         phoneNumber: '',
         modelName: '',
         serialNumber: '',
@@ -109,8 +111,18 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
                                 <input type="text" name="subscriberName" placeholder="성함 입력" value={formData.subscriberName} onChange={handleInputChange} required />
                             </div>
                             <div className="input-group">
+                                <label>생년월일</label>
+                                <input type="text" name="birthDate" placeholder="YYMMDD" value={formData.birthDate} onChange={handleInputChange} />
+                            </div>
+                        </div>
+                        <div className="input-row">
+                            <div className="input-group">
                                 <label>휴대폰번호</label>
                                 <input type="text" name="phoneNumber" placeholder="010-0000-0000" value={formData.phoneNumber} onChange={handleInputChange} />
+                            </div>
+                            <div className="input-group">
+                                <label>요금제변경/부가삭제일</label>
+                                <input type="date" name="planChangeDate" value={formData.planChangeDate} onChange={handleInputChange} />
                             </div>
                         </div>
                         <div className="input-row">
