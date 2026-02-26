@@ -13,6 +13,7 @@
     font-weight: 800;
     margin: 0;
     letter-spacing: -0.03em;
+    color: var(--text-primary);
 }
 
 .analytics-header p {
@@ -28,11 +29,14 @@
 }
 
 .chart-card {
-    padding: 2rem;
+    background: #ffffff;
+    padding: 1.5rem;
     border-radius: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-sm);
 }
 
 .chart-card.full-width {
@@ -47,9 +51,10 @@
 
 .chart-header h3 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 800;
     letter-spacing: -0.02em;
+    color: var(--text-primary);
 }
 
 .badge-premium {
@@ -80,21 +85,22 @@
 }
 
 .m-label {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--text-dim);
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .m-value {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--primary);
 }
 
 .metric-footer {
     margin-top: auto;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--border-glass);
+    border-top: 1px solid #f1f5f9;
 }
 
 .metric-footer p {
@@ -117,4 +123,14 @@
     color: var(--text-primary) !important;
     font-size: 0.875rem !important;
     font-weight: 600 !important;
+}
+
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card.full-width {
+        grid-column: span 1;
+    }
 }

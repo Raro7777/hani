@@ -17,6 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChang
 
     return (
         <div className="layout-root">
+            {/* Desktop Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="logo-box">
@@ -67,6 +68,35 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChang
                     </button>
                 </div>
             </aside>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="mobile-bottom-nav">
+                <button
+                    className={`mobile-nav-item ${activeTab === 'sales' ? 'active' : ''}`}
+                    onClick={() => onTabChange('sales')}
+                >
+                    <FileSpreadsheet className="nav-icon" />
+                    <span>판매일지</span>
+                </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'closing' ? 'active' : ''}`}
+                    onClick={() => onTabChange('closing')}
+                >
+                    <LayoutDashboard className="nav-icon" />
+                    <span>결산</span>
+                </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+                    onClick={() => onTabChange('reports')}
+                >
+                    <BarChart3 className="nav-icon" />
+                    <span>통계</span>
+                </button>
+                <button className="mobile-nav-item">
+                    <Settings className="nav-icon" />
+                    <span>설정</span>
+                </button>
+            </nav>
 
             <main className="main-content">
                 <header className="content-header">
