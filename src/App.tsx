@@ -13,7 +13,7 @@ const MOCK_CARRIERS: Carrier[] = [
     { id: 'lg', name: 'LG U+', code: 'LGU' },
 ];
 
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 
 function App() {
     const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports'>('sales');
@@ -159,6 +159,10 @@ function App() {
                     carriers={MOCK_CARRIERS}
                 />
             )}
+
+            <button className="fab-button" onClick={() => setIsFormOpen(true)} aria-label="신규 등록">
+                <Plus size={28} />
+            </button>
         </MainLayout>
     );
 }
