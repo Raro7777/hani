@@ -87,10 +87,17 @@ const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, car
         onClose();
     };
 
-    const handleApplyDatePreset = (field: 'planChangeDate' | 'additionalServiceChangeDate', days: number) => {
+    const handleApplyDatePreset = (field: 'planChangeDate' | 'additionalServiceChangeDate', offset: number | 'M+3') => {
         if (!formData.saleDate) return;
         const baseDate = new Date(formData.saleDate);
-        baseDate.setDate(baseDate.getDate() + days);
+
+        if (offset === 'M+3') {
+            baseDate.setDate(1);
+            baseDate.setMonth(baseDate.getMonth() + 3);
+        } else {
+            baseDate.setDate(baseDate.getDate() + offset);
+        }
+
         const yyyy = baseDate.getFullYear();
         const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
         const dd = String(baseDate.getDate()).padStart(2, '0');
@@ -171,6 +178,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, car
                                     <div className="preset-buttons">
                                         <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('additionalServiceChangeDate', 94)}>+94일</button>
                                         <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('additionalServiceChangeDate', 121)}>+121일</button>
+                                        <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('additionalServiceChangeDate', 'M+3')}>M+3</button>
                                     </div>
                                 </label>
                                 <input type="date" name="additionalServiceChangeDate" value={formData.additionalServiceChangeDate} onChange={handleInputChange} />
