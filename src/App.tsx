@@ -14,11 +14,12 @@ const MOCK_CARRIERS: Carrier[] = [
     { id: 'lg', name: 'LG U+', code: 'LGU' },
 ];
 
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Edit2 } from 'lucide-react';
 
 function App() {
     const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports'>('sales');
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingSale, setEditingSale] = useState<Sale | null>(null);
     const [sales, setSales] = useState<Sale[]>(() => {
         const saved = localStorage.getItem('hani_sales');
         return saved ? JSON.parse(saved) : [];
@@ -28,12 +29,16 @@ function App() {
         localStorage.setItem('hani_sales', JSON.stringify(sales));
     }, [sales]);
 
-    const handleSaleSubmit = (newSaleData: Omit<Sale, 'id'>) => {
-        const newSale: Sale = {
-            ...newSaleData,
-            id: crypto.randomUUID()
-        };
-        setSales(prev => [newSale, ...prev]);
+    const handleSaleSubmit = (newSaleData: Omit<Sale, 'id'> | Sale) => {
+        if ('id' in newSaleData && newSaleData.id) {
+            setSales(prev => prev.map(s => s.id === newSaleData.id ? (newSaleData as Sale) : s));
+        } else {
+            const newSale: Sale = {
+                ...newSaleData,
+                id: crypto.randomUUID()
+            };
+            setSales(prev => [newSale, ...prev]);
+        }
     };
 
     const handleSaleDelete = (id: string) => {
@@ -81,6 +86,7 @@ function App() {
                                         가입자명: s.subscriberName,
                                         생년월일: s.birthDate,
                                         요금제변경일: s.planChangeDate,
+                                        부가서비스변경일: s.additionalServiceChangeDate,
                                         모델명: s.modelName,
                                         실수입: calculateNetIncome(s.items)
                                     }));
@@ -126,9 +132,14 @@ function App() {
                                                     <td>{formatCurrency(saleAmount)}</td>
                                                     <td className="text-primary" style={{ fontWeight: 700 }}>{formatCurrency(netIncome)}</td>
                                                     <td>
-                                                        <button className="btn-icon delete" onClick={() => handleSaleDelete(sale.id)}>
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                            <button className="btn-icon" onClick={() => { setEditingSale(sale); setIsFormOpen(true); }} style={{ color: 'var(--text-primary)' }}>
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button className="btn-icon delete" onClick={() => handleSaleDelete(sale.id)}>
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -157,7 +168,11 @@ function App() {
 
             {isFormOpen && (
                 <SaleForm
-                    onClose={() => setIsFormOpen(false)}
+                    initialData={editingSale || undefined}
+                    onClose={() => {
+                        setIsFormOpen(false);
+                        setEditingSale(null);
+                    }}
                     onSubmit={handleSaleSubmit}
                     carriers={MOCK_CARRIERS}
                 />

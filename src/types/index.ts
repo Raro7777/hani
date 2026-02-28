@@ -37,6 +37,7 @@ export interface Sale {
     subscriberName: string;
     birthDate?: string;
     planChangeDate?: string;
+    additionalServiceChangeDate?: string;
     phoneNumber: string;
     modelName?: string;
     serialNumber?: string;

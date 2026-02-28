@@ -1,37 +1,40 @@
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Edit2 } from 'lucide-react';
 import { SettlementType, Carrier, Sale, ActivationType } from '../types';
 import { formatCurrency, SETTLEMENT_LABELS, calculateNetIncome, ACTIVATION_TYPE_LABELS } from '../lib/utils';
 import './SaleForm.css';
 
 interface SaleFormProps {
+    initialData?: Sale;
     onClose: () => void;
-    onSubmit: (sale: Omit<Sale, 'id'>) => void;
+    onSubmit: (sale: Omit<Sale, 'id'> | Sale) => void;
     carriers: Carrier[];
 }
 
-const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
+const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, carriers }) => {
     const [formData, setFormData] = useState({
-        saleDate: new Date().toISOString().split('T')[0],
-        carrierId: carriers[0]?.id || '',
-        activationType: 'NEW' as ActivationType,
-        planName: '',
-        subscriberName: '',
-        birthDate: '',
-        planChangeDate: '',
-        phoneNumber: '',
-        modelName: '',
-        serialNumber: '',
-        memo: '',
+        saleDate: initialData?.saleDate || new Date().toISOString().split('T')[0],
+        carrierId: initialData?.carrierId || carriers[0]?.id || '',
+        activationType: initialData?.activationType || ('NEW' as ActivationType),
+        planName: initialData?.planName || '',
+        subscriberName: initialData?.subscriberName || '',
+        birthDate: initialData?.birthDate || '',
+        planChangeDate: initialData?.planChangeDate || '',
+        additionalServiceChangeDate: initialData?.additionalServiceChangeDate || '',
+        phoneNumber: initialData?.phoneNumber || '',
+        modelName: initialData?.modelName || '',
+        serialNumber: initialData?.serialNumber || '',
+        memo: initialData?.memo || '',
     });
 
-    const [settlements, setSettlements] = useState<Array<{ type: SettlementType; amount: number; note: string }>>([
-        { type: 'SALE_AMOUNT', amount: 0, note: '' },
-        { type: 'SUBSIDY', amount: 0, note: '' },
-        { type: 'REBATE', amount: 0, note: '' },
-        { type: 'EXTRA', amount: 0, note: '' },
-        { type: 'INSTALLMENT', amount: 0, note: '' },
-    ]);
+    const [settlements, setSettlements] = useState<Array<{ type: SettlementType; amount: number; note: string }>>(
+        initialData?.items.map(item => ({ type: item.type, amount: item.amount, note: item.note || '' })) || [
+            { type: 'SALE_AMOUNT', amount: 0, note: '' },
+            { type: 'SUBSIDY', amount: 0, note: '' },
+            { type: 'REBATE', amount: 0, note: '' },
+            { type: 'EXTRA', amount: 0, note: '' },
+            { type: 'INSTALLMENT', amount: 0, note: '' },
+        ]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -51,21 +54,51 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
             return;
         }
 
-        const newSale: Omit<Sale, 'id'> = {
-            ...formData,
-            storeId: 'default-store',
-            sellerId: 'default-seller',
-            status: 'OPEN',
-            items: settlements.map(s => ({
-                ...s,
-                id: crypto.randomUUID(),
-                saleId: '',
-                amount: Number(s.amount)
-            }))
-        };
-
-        onSubmit(newSale);
+        if (initialData) {
+            const updatedSale: Sale = {
+                ...initialData,
+                ...formData,
+                items: settlements.map(s => {
+                    const existingItem = initialData.items.find(i => i.type === s.type);
+                    return {
+                        ...s,
+                        id: existingItem?.id || crypto.randomUUID(),
+                        saleId: initialData.id,
+                        amount: Number(s.amount)
+                    };
+                })
+            };
+            onSubmit(updatedSale);
+        } else {
+            const newSale: Omit<Sale, 'id'> = {
+                ...formData,
+                storeId: 'default-store',
+                sellerId: 'default-seller',
+                status: 'OPEN',
+                items: settlements.map(s => ({
+                    ...s,
+                    id: crypto.randomUUID(),
+                    saleId: '',
+                    amount: Number(s.amount)
+                }))
+            };
+            onSubmit(newSale);
+        }
         onClose();
+    };
+
+    const handleApplyDatePreset = (field: 'planChangeDate' | 'additionalServiceChangeDate', days: number) => {
+        if (!formData.saleDate) return;
+        const baseDate = new Date(formData.saleDate);
+        baseDate.setDate(baseDate.getDate() + days);
+        const yyyy = baseDate.getFullYear();
+        const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(baseDate.getDate()).padStart(2, '0');
+
+        setFormData(prev => ({
+            ...prev,
+            [field]: `${yyyy}-${mm}-${dd}`
+        }));
     };
 
     const netIncome = calculateNetIncome(settlements as any);
@@ -74,7 +107,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
         <div className="modal-overlay">
             <div className="modal-content glass">
                 <header className="modal-header">
-                    <h2>신규 판매 등록</h2>
+                    <h2>{initialData ? '판매 내역 수정' : '신규 판매 등록'}</h2>
                     <button className="btn-close" onClick={onClose}><X size={20} /></button>
                 </header>
 
@@ -121,18 +154,38 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
                                 <input type="text" name="phoneNumber" placeholder="010-0000-0000" value={formData.phoneNumber} onChange={handleInputChange} />
                             </div>
                             <div className="input-group">
-                                <label>요금제변경/부가삭제일</label>
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                    <span>요금제 변경일</span>
+                                    <div className="preset-buttons">
+                                        <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('planChangeDate', 121)}>+121일</button>
+                                        <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('planChangeDate', 191)}>+191일</button>
+                                    </div>
+                                </label>
                                 <input type="date" name="planChangeDate" value={formData.planChangeDate} onChange={handleInputChange} />
                             </div>
                         </div>
                         <div className="input-row">
                             <div className="input-group">
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                    <span>부가서비스 변경일</span>
+                                    <div className="preset-buttons">
+                                        <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('additionalServiceChangeDate', 94)}>+94일</button>
+                                        <button type="button" className="btn-preset" onClick={() => handleApplyDatePreset('additionalServiceChangeDate', 121)}>+121일</button>
+                                    </div>
+                                </label>
+                                <input type="date" name="additionalServiceChangeDate" value={formData.additionalServiceChangeDate} onChange={handleInputChange} />
+                            </div>
+                            <div className="input-group">
                                 <label>모델명</label>
                                 <input type="text" name="modelName" placeholder="예: iPhone 15 Pro" value={formData.modelName} onChange={handleInputChange} />
                             </div>
+                        </div>
+                        <div className="input-row">
                             <div className="input-group">
                                 <label>일련번호</label>
                                 <input type="text" name="serialNumber" placeholder="IMEI/시리얼" value={formData.serialNumber} onChange={handleInputChange} />
+                            </div>
+                            <div className="input-group">
                             </div>
                         </div>
                     </section>
@@ -178,8 +231,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ onClose, onSubmit, carriers }) => {
                     <footer className="modal-footer">
                         <button type="button" className="btn-secondary" onClick={onClose}>취소</button>
                         <button type="submit" className="btn-save">
-                            <Save size={18} />
-                            <span>판매 저장</span>
+                            {initialData ? <Edit2 size={18} /> : <Save size={18} />}
+                            <span>{initialData ? '수정 완료' : '판매 저장'}</span>
                         </button>
                     </footer>
                 </form>
