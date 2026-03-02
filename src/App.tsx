@@ -20,6 +20,7 @@ function App() {
     const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports'>('sales');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSale, setEditingSale] = useState<Sale | null>(null);
+    const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
     const [sales, setSales] = useState<Sale[]>(() => {
         const saved = localStorage.getItem('hani_sales');
         return saved ? JSON.parse(saved) : [];
@@ -49,28 +50,37 @@ function App() {
 
     const todayString = new Date().toISOString().split('T')[0];
     const todaySales = sales.filter(s => s.saleDate === todayString);
-    const totalNetIncome = sales.reduce((acc, s) => acc + calculateNetIncome(s.items), 0);
+    const monthlySales = sales.filter(s => s.saleDate.startsWith(selectedMonth));
+    const monthlyNetIncome = monthlySales.reduce((acc, s) => acc + calculateNetIncome(s.items), 0);
 
     return (
         <MainLayout activeTab={activeTab} onTabChange={setActiveTab}>
             {activeTab === 'sales' && (
                 <>
+                    <div className="month-selector-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                        <input
+                            type="month"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            style={{ padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
+                        />
+                    </div>
                     <div className="dashboard-grid">
                         <div className="stat-card">
                             <span className="stat-label">오늘의 건수</span>
                             <span className="stat-value">{todaySales.length}건</span>
-                            <span className="stat-change positive">+{sales.length} 전체</span>
+                            <span className="stat-change positive">이번 달 {monthlySales.length}건</span>
                         </div>
                         <div className="stat-card">
-                            <span className="stat-label">누적 실수입</span>
-                            <span className="stat-value">{formatCurrency(totalNetIncome)}</span>
-                            <span className="stat-change positive">+100% (현금기준)</span>
+                            <span className="stat-label">월별 실수입</span>
+                            <span className="stat-value">{formatCurrency(monthlyNetIncome)}</span>
+                            <span className="stat-change positive">해당 월 누적</span>
                         </div>
                         <div className="stat-card">
                             <span className="stat-label">최근 등록자</span>
-                            <span className="stat-value">{sales[0]?.subscriberName || '-'}</span>
+                            <span className="stat-value">{monthlySales[0]?.subscriberName || '-'}</span>
                             <span className="stat-change warning">
-                                {sales[0] ? MOCK_CARRIERS.find(c => c.id === sales[0].carrierId)?.name : '내역 없음'}
+                                {monthlySales[0] ? MOCK_CARRIERS.find(c => c.id === monthlySales[0].carrierId)?.name : '내역 없음'}
                             </span>
                         </div>
                     </div>
@@ -80,7 +90,7 @@ function App() {
                             <h3>최근 판매 내역</h3>
                             <div className="table-actions">
                                 <button className="btn-secondary-outline" onClick={() => {
-                                    const exportData = sales.map(s => ({
+                                    const exportData = monthlySales.map(s => ({
                                         판매일자: s.saleDate,
                                         통신사: MOCK_CARRIERS.find(c => c.id === s.carrierId)?.name,
                                         가입자명: s.subscriberName,
@@ -90,7 +100,7 @@ function App() {
                                         모델명: s.modelName,
                                         실수입: calculateNetIncome(s.items)
                                     }));
-                                    exportToExcel(exportData, `hani_sales_${new Date().toISOString().split('T')[0]}`);
+                                    exportToExcel(exportData, `hani_sales_${selectedMonth}`);
                                 }}>엑셀 다운로드</button>
                                 <button className="btn-primary" onClick={() => setIsFormOpen(true)}>신규 등록</button>
                             </div>
@@ -112,15 +122,15 @@ function App() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {sales.length > 0 ? (
-                                        sales.map((sale, idx) => {
+                                    {monthlySales.length > 0 ? (
+                                        monthlySales.map((sale, idx) => {
                                             const saleAmount = sale.items.find(i => i.type === 'SALE_AMOUNT')?.amount || 0;
                                             const netIncome = calculateNetIncome(sale.items);
                                             const carrier = MOCK_CARRIERS.find(c => c.id === sale.carrierId);
 
                                             return (
                                                 <tr key={sale.id}>
-                                                    <td>{sales.length - idx}</td>
+                                                    <td>{monthlySales.length - idx}</td>
                                                     <td>{sale.saleDate}</td>
                                                     <td><span className={`badge ${sale.carrierId.toLowerCase()}`}>
                                                         {carrier?.name || '기타'}
@@ -163,7 +173,7 @@ function App() {
             )}
 
             {activeTab === 'reports' && (
-                <Analytics sales={sales} />
+                <Analytics sales={monthlySales} />
             )}
 
             {isFormOpen && (
