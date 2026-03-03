@@ -221,14 +221,8 @@
         justify-content: center;
     }
 
-    .modern-table th:nth-child(4),
-    .modern-table td:nth-child(4),
-    .modern-table th:nth-child(5),
-    .modern-table td:nth-child(5),
-    .modern-table th:nth-child(7),
-    .modern-table td:nth-child(7) {
-        display: none;
-        /* Hide non-essential cols on small mobile */
+    .hide-mobile {
+        display: none !important;
     }
 
     .stat-value {

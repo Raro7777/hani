@@ -15,9 +15,9 @@ const Login: React.FC = () => {
         setError(null);
 
         let loginEmail = email;
-        // Allows typing just "syabgy" and maps it to "syabgy@hani.com" internally
+        // Allows typing just "syabgy2" and maps it to "syabgy2@hanisaas.com" internally
         if (!email.includes('@')) {
-            loginEmail = `${email}@hani.com`;
+            loginEmail = `${email}@hanisaas.com`;
         }
 
         const { error } = await supabase.auth.signInWithPassword({

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Save, Edit2 } from 'lucide-react';
+import { X, Save, Edit2, Plus } from 'lucide-react';
 import { SettlementType, Carrier, Sale, ActivationType } from '../types';
 import { formatCurrency, SETTLEMENT_LABELS, calculateNetIncome, ACTIVATION_TYPE_LABELS } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import './SaleForm.css';
 
 interface SaleFormProps {
@@ -9,9 +10,10 @@ interface SaleFormProps {
     onClose: () => void;
     onSubmit: (sale: Omit<Sale, 'id'> | Sale) => void;
     carriers: Carrier[];
+    onCarrierAdded?: () => void;
 }
 
-const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, carriers }) => {
+const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, carriers, onCarrierAdded }) => {
     const [formData, setFormData] = useState({
         saleDate: initialData?.saleDate || new Date().toISOString().split('T')[0],
         carrierId: initialData?.carrierId || carriers[0]?.id || '',
@@ -35,6 +37,33 @@ const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, car
             { type: 'EXTRA', amount: 0, note: '' },
             { type: 'INSTALLMENT', amount: 0, note: '' },
         ]);
+
+    const [isAddingCarrier, setIsAddingCarrier] = useState(false);
+    const [newCarrierName, setNewCarrierName] = useState('');
+
+    const handleAddCarrier = async () => {
+        if (!newCarrierName.trim()) return;
+
+        const { data, error } = await supabase
+            .from('carriers')
+            .insert([{ name: newCarrierName.trim() }])
+            .select()
+            .single();
+
+        if (error) {
+            alert('통신사 추가 중 오류가 발생했습니다.');
+            console.error(error);
+            return;
+        }
+
+        if (onCarrierAdded) {
+            onCarrierAdded();
+        }
+
+        setFormData(prev => ({ ...prev, carrierId: data.id }));
+        setIsAddingCarrier(false);
+        setNewCarrierName('');
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -127,10 +156,39 @@ const SaleForm: React.FC<SaleFormProps> = ({ initialData, onClose, onSubmit, car
                         </div>
                         <div className="input-row">
                             <div className="input-group">
-                                <label>통신사</label>
-                                <select name="carrierId" value={formData.carrierId} onChange={handleInputChange}>
-                                    {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>통신사</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddingCarrier(!isAddingCarrier)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}
+                                    >
+                                        {isAddingCarrier ? '취소' : <><Plus size={14} /> 직접 추가</>}
+                                    </button>
+                                </label>
+                                {isAddingCarrier ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            value={newCarrierName}
+                                            onChange={(e) => setNewCarrierName(e.target.value)}
+                                            placeholder="새 통신사명 입력"
+                                            style={{ flex: 1 }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddCarrier}
+                                            className="btn-primary"
+                                            style={{ padding: '0 1rem', borderRadius: '8px' }}
+                                        >
+                                            저장
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <select name="carrierId" value={formData.carrierId} onChange={handleInputChange}>
+                                        {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                )}
                             </div>
                             <div className="input-group">
                                 <label>개통유형</label>

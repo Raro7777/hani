@@ -84,13 +84,13 @@ const History: React.FC<HistoryProps> = ({ sales, carriers, onEdit, onDelete }) 
                         <thead>
                             <tr>
                                 <th>번호</th>
-                                <th>날짜</th>
+                                <th className="hide-mobile">날짜</th>
                                 <th>통신사</th>
-                                <th>유형</th>
-                                <th>요금제</th>
+                                <th className="hide-mobile">유형</th>
+                                <th className="hide-mobile">요금제</th>
                                 <th>가입자</th>
-                                <th>연락처</th>
-                                <th>모델명</th>
+                                <th className="hide-mobile">연락처</th>
+                                <th className="hide-mobile">모델명</th>
                                 <th>실수입</th>
                                 <th>관리</th>
                             </tr>
@@ -104,15 +104,15 @@ const History: React.FC<HistoryProps> = ({ sales, carriers, onEdit, onDelete }) 
                                     return (
                                         <tr key={sale.id}>
                                             <td>{filteredSales.length - idx}</td>
-                                            <td>{sale.saleDate}</td>
+                                            <td className="hide-mobile">{sale.saleDate}</td>
                                             <td><span className={`badge ${sale.carrierId.toLowerCase()}`}>
                                                 {carrier?.name || '기타'}
                                             </span></td>
-                                            <td>{ACTIVATION_TYPE_LABELS[sale.activationType] || sale.activationType}</td>
-                                            <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{sale.planName || '-'}</td>
+                                            <td className="hide-mobile">{ACTIVATION_TYPE_LABELS[sale.activationType] || sale.activationType}</td>
+                                            <td className="hide-mobile" style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{sale.planName || '-'}</td>
                                             <td>{sale.subscriberName}</td>
-                                            <td>{sale.phoneNumber}</td>
-                                            <td>{sale.modelName || '-'}</td>
+                                            <td className="hide-mobile">{sale.phoneNumber}</td>
+                                            <td className="hide-mobile">{sale.modelName || '-'}</td>
                                             <td className="text-primary" style={{ fontWeight: 700 }}>{formatCurrency(netIncome)}</td>
                                             <td>
                                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
