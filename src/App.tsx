@@ -6,6 +6,7 @@ import { Carrier, Sale } from './types';
 import DailyClosing from './components/DailyClosing';
 import Analytics from './components/Analytics';
 import DateCalculator from './components/DateCalculator';
+import History from './components/History';
 import './App.css';
 
 const MOCK_CARRIERS: Carrier[] = [
@@ -17,7 +18,7 @@ const MOCK_CARRIERS: Carrier[] = [
 import { Trash2, Plus, Edit2 } from 'lucide-react';
 
 function App() {
-    const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports'>('sales');
+    const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports' | 'history'>('sales');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSale, setEditingSale] = useState<Sale | null>(null);
     const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
@@ -174,6 +175,18 @@ function App() {
 
             {activeTab === 'reports' && (
                 <Analytics sales={monthlySales} />
+            )}
+
+            {activeTab === 'history' && (
+                <History
+                    sales={sales}
+                    carriers={MOCK_CARRIERS}
+                    onEdit={(sale) => {
+                        setEditingSale(sale);
+                        setIsFormOpen(true);
+                    }}
+                    onDelete={handleSaleDelete}
+                />
             )}
 
             {isFormOpen && (

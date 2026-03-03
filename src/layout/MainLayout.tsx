@@ -1,18 +1,19 @@
 import React from 'react';
-import { LayoutDashboard, FileSpreadsheet, BarChart3, Settings, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, FileSpreadsheet, BarChart3, Settings, LogOut, Package, List } from 'lucide-react';
 import './MainLayout.css';
 
 interface MainLayoutProps {
     children: React.ReactNode;
-    activeTab: 'sales' | 'closing' | 'reports';
-    onTabChange: (tab: 'sales' | 'closing' | 'reports') => void;
+    activeTab: 'sales' | 'closing' | 'reports' | 'history';
+    onTabChange: (tab: 'sales' | 'closing' | 'reports' | 'history') => void;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange }) => {
     const pageTitles = {
-        sales: { title: '판매일지 관리', sub: '목록 및 통계' },
+        sales: { title: '대시보드', sub: '최근 내역 및 요약' },
         closing: { title: '일일 결산 마감', sub: '일계표 정산' },
-        reports: { title: '통계 리포트', sub: '리포트 분석' }
+        reports: { title: '통계 리포트', sub: '리포트 분석' },
+        history: { title: '접수 내역', sub: '전체 목록 필터검색' }
     };
 
     return (
@@ -31,14 +32,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChang
                         className={`nav-item ${activeTab === 'sales' ? 'active' : ''}`}
                         onClick={() => onTabChange('sales')}
                     >
-                        <FileSpreadsheet className="nav-icon" />
-                        <span>판매일지</span>
+                        <LayoutDashboard className="nav-icon" />
+                        <span>대시보드</span>
+                    </button>
+                    <button
+                        className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
+                        onClick={() => onTabChange('history')}
+                    >
+                        <List className="nav-icon" />
+                        <span>접수 내역</span>
                     </button>
                     <button
                         className={`nav-item ${activeTab === 'closing' ? 'active' : ''}`}
                         onClick={() => onTabChange('closing')}
                     >
-                        <LayoutDashboard className="nav-icon" />
+                        <FileSpreadsheet className="nav-icon" />
                         <span>일일 결산</span>
                     </button>
                     <button
@@ -75,14 +83,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChang
                     className={`mobile-nav-item ${activeTab === 'sales' ? 'active' : ''}`}
                     onClick={() => onTabChange('sales')}
                 >
-                    <FileSpreadsheet className="nav-icon" />
-                    <span>판매일지</span>
+                    <LayoutDashboard className="nav-icon" />
+                    <span>대시보드</span>
+                </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'history' ? 'active' : ''}`}
+                    onClick={() => onTabChange('history')}
+                >
+                    <List className="nav-icon" />
+                    <span>내역</span>
                 </button>
                 <button
                     className={`mobile-nav-item ${activeTab === 'closing' ? 'active' : ''}`}
                     onClick={() => onTabChange('closing')}
                 >
-                    <LayoutDashboard className="nav-icon" />
+                    <FileSpreadsheet className="nav-icon" />
                     <span>결산</span>
                 </button>
                 <button
