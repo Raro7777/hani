@@ -7,32 +7,29 @@ import DailyClosing from './components/DailyClosing';
 import Analytics from './components/Analytics';
 import DateCalculator from './components/DateCalculator';
 import History from './components/History';
+import Login from './components/Login';
+import { useAuth } from './contexts/AuthContext';
 import './App.css';
 
 import { supabase } from './lib/supabase';
-import { Trash2, Plus, Edit2 } from 'lucide-react';
+import { Trash2, Plus, Edit2, LogOut } from 'lucide-react';
 
 function App() {
+    const { session, storeId, sellerId, isLoading, signOut } = useAuth();
     const [activeTab, setActiveTab] = useState<'sales' | 'closing' | 'reports' | 'history'>('sales');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSale, setEditingSale] = useState<Sale | null>(null);
     const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
     const [sales, setSales] = useState<Sale[]>([]);
     const [carriers, setCarriers] = useState<Carrier[]>([]);
-    const [defaultStoreId, setDefaultStoreId] = useState<string>('');
-    const [defaultSellerId, setDefaultSellerId] = useState<string>('');
 
     useEffect(() => {
-        fetchInitialData();
-    }, []);
+        if (session) {
+            fetchInitialData();
+        }
+    }, [session]);
 
     const fetchInitialData = async () => {
-        const { data: storeData } = await supabase.from('stores').select('id').limit(1);
-        const { data: sellerData } = await supabase.from('sellers').select('id').limit(1);
-
-        if (storeData && storeData.length > 0) setDefaultStoreId(storeData[0].id);
-        if (sellerData && sellerData.length > 0) setDefaultSellerId(sellerData[0].id);
-
         const { data: carrierData } = await supabase.from('carriers').select('*');
         if (carrierData) setCarriers(carrierData);
 
@@ -79,11 +76,16 @@ function App() {
     };
 
     const handleSaleSubmit = async (newSaleData: Omit<Sale, 'id'> | Sale) => {
+        if (!storeId || !sellerId) {
+            alert("연결된 매장/판매자 정보가 없습니다. 관리자에게 문의하세요.");
+            return;
+        }
+
         const isEditing = 'id' in newSaleData && newSaleData.id;
         const saleRecord = {
             sale_date: newSaleData.saleDate,
-            store_id: defaultStoreId,
-            seller_id: defaultSellerId,
+            store_id: storeId,
+            seller_id: sellerId,
             carrier_id: newSaleData.carrierId,
             subscriber_name: newSaleData.subscriberName,
             phone_number: newSaleData.phoneNumber,
@@ -132,8 +134,21 @@ function App() {
     const monthlySales = sales.filter(s => s.saleDate.startsWith(selectedMonth));
     const monthlyNetIncome = monthlySales.reduce((acc, s) => acc + calculateNetIncome(s.items), 0);
 
+    if (isLoading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>로딩 중...</div>;
+    }
+
+    if (!session) {
+        return <Login />;
+    }
+
     return (
         <MainLayout activeTab={activeTab} onTabChange={setActiveTab}>
+            <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+                <button className="btn-secondary-outline" onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <LogOut size={16} /> 로그아웃
+                </button>
+            </div>
             {activeTab === 'sales' && (
                 <>
                     <div className="month-selector-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
@@ -248,7 +263,7 @@ function App() {
             )}
 
             {activeTab === 'closing' && (
-                <DailyClosing date={todayString} sales={todaySales} storeId={defaultStoreId} />
+                <DailyClosing date={todayString} sales={todaySales} storeId={storeId || ''} />
             )}
 
             {activeTab === 'reports' && (
