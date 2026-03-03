@@ -2,41 +2,68 @@ import React, { useState } from 'react';
 import { Plus, Minus, Wallet, Receipt, TrendingUp, Trash2 } from 'lucide-react';
 import { formatCurrency, CASH_ENTRY_LABELS } from '../lib/utils';
 import { Sale, CashLedgerEntry } from '../types';
+import { supabase } from '../lib/supabase';
 import './DailyClosing.css';
 
 interface DailyClosingProps {
     date: string;
     sales: Sale[];
+    storeId: string;
 }
 
-const DailyClosing: React.FC<DailyClosingProps> = ({ date, sales }) => {
-    const [cashEntries, setCashEntries] = useState<CashLedgerEntry[]>(() => {
-        const saved = localStorage.getItem(`hani_cash_${date}`);
-        return saved ? JSON.parse(saved) : [];
-    });
+const DailyClosing: React.FC<DailyClosingProps> = ({ date, sales, storeId }) => {
+    const [cashEntries, setCashEntries] = useState<CashLedgerEntry[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [newEntry, setNewEntry] = useState({ title: '', amount: 0, type: 'EXPENSE' as const });
 
-    const saveEntries = (entries: CashLedgerEntry[]) => {
-        setCashEntries(entries);
-        localStorage.setItem(`hani_cash_${date}`, JSON.stringify(entries));
+    React.useEffect(() => {
+        fetchCashEntries();
+    }, [date, storeId]);
+
+    const fetchCashEntries = async () => {
+        if (!storeId) return;
+        const { data, error } = await supabase
+            .from('cash_ledger_entries')
+            .select('*')
+            .eq('date', date)
+            .eq('store_id', storeId);
+
+        if (!error && data) {
+            setCashEntries(data.map(d => ({
+                id: d.id,
+                date: d.date,
+                storeId: d.store_id,
+                sellerId: d.seller_id,
+                type: d.type,
+                title: d.title,
+                amount: Number(d.amount)
+            })));
+        }
     };
 
-    const handleAddEntry = () => {
-        if (!newEntry.title || newEntry.amount <= 0) return;
-        const entry: CashLedgerEntry = {
-            ...newEntry,
-            id: crypto.randomUUID(),
+    const handleAddEntry = async () => {
+        if (!newEntry.title || newEntry.amount <= 0 || !storeId) return;
+        const entryRecord = {
             date,
-            storeId: 'default'
+            store_id: storeId,
+            type: newEntry.type,
+            title: newEntry.title,
+            amount: newEntry.amount
         };
-        saveEntries([...cashEntries, entry]);
-        setNewEntry({ title: '', amount: 0, type: 'EXPENSE' });
-        setIsAdding(false);
+
+        const { error } = await supabase.from('cash_ledger_entries').insert([entryRecord]);
+        if (!error) {
+            setNewEntry({ title: '', amount: 0, type: 'EXPENSE' });
+            setIsAdding(false);
+            fetchCashEntries();
+        }
     };
 
-    const handleDeleteEntry = (id: string) => {
-        saveEntries(cashEntries.filter(e => e.id !== id));
+    const handleDeleteEntry = async (id: string) => {
+        const { error } = await supabase.from('cash_ledger_entries').delete().eq('id', id);
+        if (!error) {
+            fetchCashEntries();
+        }
     };
 
     const salesNetTotal = sales.reduce((acc, sale) => {

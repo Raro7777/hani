@@ -248,7 +248,7 @@ function App() {
             )}
 
             {activeTab === 'closing' && (
-                <DailyClosing date={todayString} sales={todaySales} />
+                <DailyClosing date={todayString} sales={todaySales} storeId={defaultStoreId} />
             )}
 
             {activeTab === 'reports' && (
